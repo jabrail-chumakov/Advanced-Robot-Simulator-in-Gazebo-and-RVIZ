@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.third_option &mdash; Advanced Robot Simulator in Gazebo and RVIZ 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Advanced Robot Simulator in Gazebo and RVIZ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Advanced Robot Simulator in Gazebo and RVIZ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>scripts.third_option</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.third_option</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: third_option</span>
+<span class="sd">    :platform: Unix</span>
+<span class="sd">    :synopsis: Python script representing third option *(self-control with obstacle avoidance)*</span>
+<span class="sd">.. moduleauthor:: Jabrail Chumakov `rospy &lt;jabrail.chumakov@nu.edu.kz&gt;`_</span>
+
+<span class="sd">Packages:</span>
+<span class="sd">    `NumPy &lt;https://pypi.org/project/numpy/&gt;`_: The fundamental package for array computing with Python.</span>
+<span class="sd">    </span>
+<span class="sd">Publishes to:</span>
+<span class="sd">    ``/cmd_vel``: The desired robot position.</span>
+<span class="sd">    </span>
+<span class="sd">Subscribes to:</span>
+<span class="sd">    ``/new_cmd_vel``: The newly obtained robot position.</span>
+<span class="sd">    ``/scan``: Scans for obstacles in front of the robot.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">array</span> <span class="kn">as</span> <span class="nn">arr</span>
+<span class="kn">from</span> <span class="nn">sensor_msgs.msg</span> <span class="kn">import</span> <span class="n">LaserScan</span>           
+<span class="kn">from</span> <span class="nn">geometry_msgs.msg</span> <span class="kn">import</span> <span class="n">Twist</span><span class="p">,</span> <span class="n">Vector3</span>   
+
+
+<div class="viewcode-block" id="distance_control"><a class="viewcode-back" href="../../index.html#scripts.third_option.distance_control">[docs]</a><span class="k">def</span> <span class="nf">distance_control</span><span class="p">(</span><span class="n">ranges</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to check distance from 3 different sides, which returns minimal range at the end.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        ranges(array): Angles around the robot.</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ranges(min_d): Returns array with minimum distance until the obstacle.</span>
+<span class="sd">        </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        1. Bound angles on appropriate sides and store it in mid_d in appropriate order.</span>
+<span class="sd">        </span>
+<span class="sd">        2. Stores information about minimal range from 3 sides (right, front, left) in ``mid_d``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">right_side</span> <span class="o">=</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">240</span><span class="p">]</span>
+    <span class="n">front_side</span> <span class="o">=</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">240</span><span class="p">:</span><span class="mi">480</span><span class="p">]</span>
+    <span class="n">left_side</span> <span class="o">=</span> <span class="n">ranges</span><span class="p">[</span><span class="mi">480</span><span class="p">:</span><span class="mi">721</span><span class="p">]</span>
+    <span class="n">min_d</span> <span class="o">=</span> <span class="n">arr</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">right_side</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">front_side</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">left_side</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">min_d</span></div>
+
+<span class="c1"># In case if robot will be too close to wall, there shoud me some restrictions on that called border threshold.</span>
+<span class="c1"># This value can be regulated in the script, dependent on the user desire</span>
+<span class="n">border_th</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="c1"># Creates a Twist message with linear and angular values for &#39;x&#39;, &#39;y&#39; and &#39;z&#39;</span>
+<span class="n">move_cmd</span> <span class="o">=</span> <span class="n">Twist</span><span class="p">(</span><span class="n">Vector3</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">Vector3</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="obstacle_avoidance"><a class="viewcode-back" href="../../index.html#scripts.third_option.obstacle_avoidance">[docs]</a><span class="k">def</span> <span class="nf">obstacle_avoidance</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to check whether robot is too close to the obstacle.</span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        1. Creates publisher to publish Twist to ``/cmd_vel``.</span>
+<span class="sd">        </span>
+<span class="sd">        2. Takes array with minimal ranges from :func:`distance_control` function.</span>
+<span class="sd">        </span>
+<span class="sd">        3. If distance from right is less than ``border_th = 0.6``, then it&#39;s not possible to rotate to right further.</span>
+<span class="sd">        </span>
+<span class="sd">        4. If distance in front of the robot is less than ``border_th = 0.6``, then it&#39;s not possible to move robot forward further.</span>
+<span class="sd">        </span>
+<span class="sd">        5. If distance from left is less than ``border_th = 0.6``, then it&#39;s not possible to rotate to left further.</span>
+<span class="sd">        </span>
+<span class="sd">        6. Publish linear and angular values for **X**, **Y** and **Z**.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">move_cmd</span>
+    <span class="n">movement_publisher</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">Publisher</span><span class="p">(</span><span class="s1">&#39;/cmd_vel&#39;</span><span class="p">,</span> <span class="n">Twist</span><span class="p">,</span> <span class="n">queue_size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">check_dist</span> <span class="o">=</span> <span class="n">distance_control</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">ranges</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">check_dist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">border_th</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">move_cmd</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">move_cmd</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>    
+
+    <span class="k">if</span> <span class="n">check_dist</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">border_th</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">move_cmd</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">move_cmd</span><span class="o">.</span><span class="n">linear</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">0</span>
+    
+    <span class="k">if</span> <span class="n">check_dist</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">border_th</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">move_cmd</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">move_cmd</span><span class="o">.</span><span class="n">angular</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">movement_publisher</span><span class="o">.</span><span class="n">publish</span><span class="p">(</span><span class="n">move_cmd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="obstacle_avoidance_corrected"><a class="viewcode-back" href="../../index.html#scripts.third_option.obstacle_avoidance_corrected">[docs]</a><span class="k">def</span> <span class="nf">obstacle_avoidance_corrected</span><span class="p">(</span><span class="n">info</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to rewrite ``move_cmd`` with linear and angular values from ``/new_cmd_vel`` topic.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">move_cmd</span>
+    <span class="n">move_cmd</span> <span class="o">=</span> <span class="n">info</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes ``art_node`` node and subscribes to ``/new_cmd_vel`` with :func:`obstacle_avoidance_corrected` callback, as well as to ``/scan`` with :func:`obstacle_avoidance` callback.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Initialize node</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;art_node&#39;</span><span class="p">)</span>
+    <span class="c1"># Subscribes to &#39;/new_cmd_vel&#39; topic</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s2">&quot;/new_cmd_vel&quot;</span><span class="p">,</span> <span class="n">Twist</span><span class="p">,</span> <span class="n">obstacle_avoidance_corrected</span><span class="p">)</span>
+    <span class="c1"># Subscribes to &#39;/scan&#39; topic</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">Subscriber</span><span class="p">(</span><span class="s2">&quot;/scan&quot;</span><span class="p">,</span> <span class="n">LaserScan</span><span class="p">,</span> <span class="n">obstacle_avoidance</span><span class="p">)</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">spin</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Jabrail Chumakov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

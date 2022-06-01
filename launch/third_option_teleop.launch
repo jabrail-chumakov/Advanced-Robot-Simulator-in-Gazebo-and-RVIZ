@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+	<remap from = "cmd_vel" to = "new_cmd_vel"/>
+	<node pkg = "teleop_twist_keyboard" type = "teleop_twist_keyboard.py" name = "adv_self_driving_teleop" output = "screen"/>
+</launch>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scripts.main_menu &mdash; Advanced Robot Simulator in Gazebo and RVIZ 1.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> Advanced Robot Simulator in Gazebo and RVIZ
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Advanced Robot Simulator in Gazebo and RVIZ</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>scripts.main_menu</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scripts.main_menu</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! /usr/bin/env python</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">.. module:: main_menu</span>
+<span class="sd">    :platform: Unix</span>
+<span class="sd">    :synopsis: Python script representing user interface</span>
+<span class="sd">.. moduleauthor:: Jabrail Chumakov &lt;jabrail.chumakov@nu.edu.kz&gt;</span>
+
+<span class="sd">Packages:</span>
+<span class="sd">    `Threading &lt;https://pypi.org/project/threaded/&gt;`_: Decorators for running functions in Thread/ThreadPool/IOLoop.</span>
+<span class="sd">    </span>
+<span class="sd">    `Tabulate &lt;https://pypi.org/project/tabulate/&gt;`_: Pretty-print tabular data in Python, a library and a command-line utility.</span>
+<span class="sd">    </span>
+<span class="sd">    `Termcolor &lt;https://pypi.org/project/termcolor/&gt;`_: ANSII Color formatting for output in terminal.</span>
+<span class="sd">    </span>
+<span class="sd">Service:</span>
+<span class="sd">    ``/navigation``: Service for navigation in the environment.</span>
+<span class="sd">    </span>
+<span class="sd">    ``/self_driving``: Service for automatic driving by the robot.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">rospy</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">tabulate</span> <span class="kn">import</span> <span class="n">tabulate</span>
+<span class="kn">from</span> <span class="nn">termcolor</span> <span class="kn">import</span> <span class="n">colored</span>
+<span class="kn">from</span> <span class="nn">final_assignment.srv</span> <span class="kn">import</span> <span class="n">TTS_server</span>	 
+<span class="kn">from</span> <span class="nn">final_assignment.srv</span> <span class="kn">import</span> <span class="n">Coordinates</span> 
+
+
+<div class="viewcode-block" id="clearConsole"><a class="viewcode-back" href="../../index.html#scripts.main_menu.clearConsole">[docs]</a><span class="k">def</span> <span class="nf">clearConsole</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">    Function to clear console after each action to keep it clean and readable in the console window.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="s1">&#39;clear&#39;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;nt&#39;</span><span class="p">,</span> <span class="s1">&#39;dos&#39;</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s1">&#39;cls&#39;</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">command</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="menu"><a class="viewcode-back" href="../../index.html#scripts.main_menu.menu">[docs]</a><span class="k">def</span> <span class="nf">menu</span><span class="p">():</span>    
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main menu function. After entering appropriate option, this string-input will be sent to :func:`main` to match with corresponding function.</span>
+<span class="sd">    Clears console each time program is executed calling :func:`clearConsole` function.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        input(string): Takes string-input and returns it. An option that user chose in the main menu.</span>
+<span class="sd">        </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        After pressing one of the following key buttons corresponding mode will be executed:</span>
+<span class="sd">        </span>
+<span class="sd">        **1** — Autonomously reach **X** and **Y** coordinate.</span>
+<span class="sd">        </span>
+<span class="sd">        **2** — Drive the robot with the keyboard.</span>
+<span class="sd">        </span>
+<span class="sd">        **3** — Drive the robot with avoid collisions feature.</span>
+<span class="sd">        </span>
+<span class="sd">        **4** — Close the program.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">clearConsole</span><span class="p">()</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u2460</span><span class="s1">&#39;</span><span class="p">,</span><span class="s2">&quot;Autonomously reach &#39;x&#39; and &#39;y&#39; coordinate&quot;</span><span class="p">],</span>
+             <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u2461</span><span class="s1">&#39;</span><span class="p">,</span><span class="s2">&quot;Drive the robot with the keyboard&quot;</span><span class="p">],</span>
+             <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u2462</span><span class="s1">&#39;</span><span class="p">,</span><span class="s2">&quot;Drive the robot with avoid collisions feature&quot;</span><span class="p">],</span>
+             <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;</span><span class="se">\u2463</span><span class="s1">&#39;</span><span class="p">,</span><span class="s2">&quot;Close the program&quot;</span><span class="p">]]</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Robot control in the environment&quot;</span><span class="p">]</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">tabulate</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">headers</span><span class="p">,</span> <span class="n">tablefmt</span> <span class="o">=</span> <span class="s2">&quot;fancy_grid&quot;</span><span class="p">))</span>
+    <span class="n">selected_option</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Please, select desired option: &quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">selected_option</span></div>
+
+
+<div class="viewcode-block" id="is_number_tryexcept"><a class="viewcode-back" href="../../index.html#scripts.main_menu.is_number_tryexcept">[docs]</a><span class="k">def</span> <span class="nf">is_number_tryexcept</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to check whether entered string-input from :func:`menu` function is float number or not.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        s(string): Input string by the user.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        s(string): Returns True if string is a number (both positive or negative), otherwise False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">False</span></div>
+
+
+<div class="viewcode-block" id="first_option"><a class="viewcode-back" href="../../index.html#scripts.main_menu.first_option">[docs]</a><span class="k">def</span> <span class="nf">first_option</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function called in case if user entered first option in :func:`menu`. </span>
+<span class="sd">    </span>
+<span class="sd">    .. note::</span>
+<span class="sd">        1. Gives a command to robot to move in user-defined coordinates **(X, Y)**.</span>
+<span class="sd">        </span>
+<span class="sd">        2. Takes coordinate for **X** and checks whether it number or not using :func:`is_number_tryexcept` function. If it&#39;s positive-negative then takes it as correct coordinate.</span>
+<span class="sd">           Otherwise prints that entered coordinate is invalid.</span>
+<span class="sd">        </span>
+<span class="sd">        3. Takes coordinate for **Y** and checks whether it number or not using :func:`is_number_tryexcept` function. If it&#39;s positive-negative then takes it as correct coordinate.</span>
+<span class="sd">           Otherwise prints that entered coordinate is invalid.</span>
+<span class="sd">         </span>
+<span class="sd">        4. Checks if the ``/navigation`` service is available and blocks as long as it can&#39;t reach the service.</span>
+<span class="sd">    </span>
+<span class="sd">        5. Creates the object which communicates with the ``/navigation`` server.</span>
+<span class="sd">    </span>
+<span class="sd">        6. If :mod:`first_option` returned True or False, then :func:`clearConsole` called for both cases. But results are checked in :mod:`first_option`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;You choosed first option! Please, enter desired goal for &#39;x&#39; and &#39;y&#39; below: &quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span> <span class="s2">&quot;underline&quot;</span><span class="p">]))</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;- Enter &#39;x&#39; position: &quot;</span><span class="p">)</span>
+    <span class="n">number_x</span> <span class="o">=</span> <span class="n">is_number_tryexcept</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">number_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;Invalid coordinate for &#39;x&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">- Enter &#39;x&#39; position: &quot;</span><span class="p">)</span>
+        <span class="n">number_x</span> <span class="o">=</span> <span class="n">is_number_tryexcept</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;Correct coordinate for &#39;x&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">))</span>
+    
+    <span class="n">y</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">- Enter &#39;y&#39; position: &quot;</span><span class="p">)</span>
+    <span class="n">number_y</span> <span class="o">=</span> <span class="n">is_number_tryexcept</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">while</span> <span class="n">number_y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;Invalid coordinate for &#39;y&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">- Enter &#39;y&#39; position: &quot;</span><span class="p">)</span>
+        <span class="n">number_y</span> <span class="o">=</span> <span class="n">is_number_tryexcept</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;Correct coordinate for &#39;y&#39;&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">))</span>    
+    
+    <span class="n">rospy</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="s1">&#39;navigation&#39;</span><span class="p">)</span>
+    
+    <span class="n">navigation</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="s1">&#39;navigation&#39;</span><span class="p">,</span> <span class="n">Coordinates</span><span class="p">)</span>
+    <span class="n">obtained_goal</span> <span class="o">=</span> <span class="n">navigation</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+    
+    <span class="k">if</span> <span class="n">obtained_goal</span><span class="o">.</span><span class="n">results</span> <span class="o">==</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="n">clearConsole</span><span class="p">()</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">clearConsole</span><span class="p">()</span>
+        <span class="k">pass</span></div>
+        
+<div class="viewcode-block" id="second_option"><a class="viewcode-back" href="../../index.html#scripts.main_menu.second_option">[docs]</a><span class="k">def</span> <span class="nf">second_option</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function called in case if user entered second option in :func:`menu`. Provides users with a feature to self-control robot.</span>
+<span class="sd">    Sends a *0* to :mod:`second_option` where it will run second option in case of **0**, while in case of **1** it will run third option.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;You choosed second option! Please, read the instructions for controlling the robot and go!&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span> <span class="s2">&quot;underline&quot;</span><span class="p">]))</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;roslaunch final_assignment second_option.launch&#39;</span><span class="p">,</span> <span class="n">shell</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="s1">&#39;self_driving&#39;</span><span class="p">)</span>
+    <span class="n">self_driving</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="s1">&#39;self_driving&#39;</span><span class="p">,</span> <span class="n">TTS_server</span><span class="p">)</span>
+    <span class="n">self_driving</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+ 	
+<div class="viewcode-block" id="third_option"><a class="viewcode-back" href="../../index.html#scripts.main_menu.third_option">[docs]</a><span class="k">def</span> <span class="nf">third_option</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function called in case if user entered third option in :func:`menu`. Provides users with a feature to self-control robot.</span>
+<span class="sd">    Sends a **1** to :mod:`second_option` where it will run third option in case of **1**, while in case of **0** it will run second option.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;You choosed third option with obstacles avoidance feature! Please, read the instructions for controlling the robot and go!&quot;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;bold&quot;</span><span class="p">,</span> <span class="s2">&quot;underline&quot;</span><span class="p">]))</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="s1">&#39;roslaunch final_assignment third_option.launch&#39;</span><span class="p">,</span> <span class="n">shell</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">wait_for_service</span><span class="p">(</span><span class="s1">&#39;self_driving&#39;</span><span class="p">)</span>
+    <span class="n">self_driving</span> <span class="o">=</span> <span class="n">rospy</span><span class="o">.</span><span class="n">ServiceProxy</span><span class="p">(</span><span class="s1">&#39;self_driving&#39;</span><span class="p">,</span> <span class="n">TTS_server</span><span class="p">)</span>
+    <span class="n">self_driving</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="fourth_option"><a class="viewcode-back" href="../../index.html#scripts.main_menu.fourth_option">[docs]</a><span class="k">def</span> <span class="nf">fourth_option</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to exit from the program.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Good bye!&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../index.html#scripts.main_menu.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main function which manages entered string-inputs from :func:`menu` function. Equates ``typed_input`` with returned string-input from :func:`menu` function.</span>
+<span class="sd">    </span>
+<span class="sd">    * Checks whether ``typed_input`` is one of the following cases. Otherwise, prints that option is not in the list.</span>
+<span class="sd">    </span>
+<span class="sd">    * In case while loop is not true anymore, then exit from the program.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rospy</span><span class="o">.</span><span class="n">init_node</span><span class="p">(</span><span class="s1">&#39;Menu&#39;</span><span class="p">)</span>
+    <span class="n">check_loop</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">check_loop</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">typed_input</span> <span class="o">=</span> <span class="n">menu</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">typed_input</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span><span class="p">):</span>
+            <span class="n">first_option</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">typed_input</span> <span class="o">==</span> <span class="s2">&quot;2&quot;</span><span class="p">):</span>
+            <span class="n">second_option</span><span class="p">()</span>  
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rosnode kill self_driving &gt;/dev/null&quot;</span><span class="p">)</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">typed_input</span> <span class="o">==</span> <span class="s2">&quot;3&quot;</span><span class="p">):</span>
+            <span class="n">third_option</span><span class="p">()</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rosnode kill self_driving &gt;/dev/null&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rosnode kill adv_self_driving &gt;/dev/null&quot;</span><span class="p">)</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">typed_input</span> <span class="o">==</span> <span class="s2">&quot;4&quot;</span><span class="p">):</span>
+            <span class="n">fourth_option</span><span class="p">()</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rosnode kill first_option &gt;/dev/null&quot;</span><span class="p">)</span>
+            <span class="n">check_loop</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">colored</span><span class="p">(</span><span class="s2">&quot;That&#39;s not a valid option!&quot;</span><span class="p">,</span> <span class="s2">&quot;yellow&quot;</span><span class="p">,</span> <span class="n">attrs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;blink&quot;</span><span class="p">]))</span>
+            <span class="n">rospy</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">check_loop</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+    
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes main() function, which initializes ``Menu`` node.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Jabrail Chumakov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node pkg = "final_assignment" type = "main_menu.py" name = "menu" output = "screen"/>
+	<node pkg = "final_assignment" type = "first_option.py" name = "first_option" output = "screen"/>
+</launch>

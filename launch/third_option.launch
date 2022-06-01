@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node pkg = "final_assignment" type = "second_option.py" name = "self_driving" output = "screen"/>
+	<node pkg = "final_assignment" type = "third_option.py" name = "adv_self_driving" output = "screen"/>
+</launch>
+
