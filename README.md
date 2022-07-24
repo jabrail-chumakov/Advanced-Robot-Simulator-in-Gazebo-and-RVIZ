@@ -29,6 +29,14 @@ $ roslaunch final_assignment main_menu.launch
 ```
 The first script should run Gazebo and RVIZ in the new windows. The second script will run `move_base` launch file, while the last one should open the program itself.
 
+In order to run the same program via **Jupiter**, run the following commands:
+
+```bash
+$ roslaunch final_assignment simulation_gmapping.launch
+$ roslaunch final_assignment move_base.launch
+$ roslaunch final_assignment jupyter_run.launch
+```
+After that you should run Jupyter notebook and run inside `jupyter_run.ipynb` file all cells.
 
 Task objectives
 ---------
