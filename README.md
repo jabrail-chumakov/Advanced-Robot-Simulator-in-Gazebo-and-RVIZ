@@ -83,6 +83,10 @@ The proposed solution is simple and efficient and works almost perfectly. The so
 
 - In case the user entered `4` in the input window, the program will close automatically. 
 
+Working principle via Jupyter
+-----------------------------
+The program works in the same way as in the original project. In the first option, you just navigate to the desired position, while in the second and third you can move the robot by yourself. In order to enable obstacle collision, you should check the appropriate box inside Jupiter notebook.
+
 Flowchart
 -----------------------------
 ![flowcharts](https://user-images.githubusercontent.com/67557966/153733475-f29e3aa0-76fb-40a2-9106-d8fb695bdbdc.png)
