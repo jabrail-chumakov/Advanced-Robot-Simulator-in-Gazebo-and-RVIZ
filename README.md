@@ -87,6 +87,10 @@ Working principle via Jupyter
 -----------------------------
 The program works in the same way as in the original project. In the first option, you just navigate to the desired position, while in the second and third you can move the robot by yourself. In order to enable obstacle collision, you should check the appropriate box inside Jupiter notebook.
 
+Statistical analysis
+-----------------------------
+In order to complete the final task, statistical analysis of the first assignment was necessary. Two implementations ([this](https://github.com/jabrail-chumakov/Robot-Simulator-with-360-degree-sensors) and [this](https://github.com/CarmineD8/python_simulator/tree/rt2)) were taken into consideration, and it was tested to see which one performed better in the circuit when silver tokens were distributed at random throughout the environment.
+
 Video demonstration
 -----------------------------
 Below you can watch a demonstration of this assignment (click on image):
