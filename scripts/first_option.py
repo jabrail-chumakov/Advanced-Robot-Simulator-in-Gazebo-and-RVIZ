@@ -34,7 +34,7 @@ from final_assignment.srv import Coordinates
 from inputimeout import inputimeout, TimeoutOccurred
     
 # Defines timeout for robot to finish the task
-timeout = 60.0
+timeout = 180.0
     
 def clearConsole():
     """ 

@@ -72,7 +72,7 @@ def obstacle_avoidance(info):
     global move_cmd
     movement_publisher = rospy.Publisher('/cmd_vel', Twist, queue_size = 10)
     check_dist = distance_control(info.ranges)
-    
+    #flag_control = rospy.get_param("/obstacle_avoidance")
     if check_dist[0] < border_th:
         if move_cmd.angular.z < 0:
             move_cmd.angular.z = 0    
