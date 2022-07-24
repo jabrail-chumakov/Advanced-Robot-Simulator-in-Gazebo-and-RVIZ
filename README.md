@@ -90,6 +90,22 @@ The program works in the same way as in the original project. In the first optio
 Statistical analysis
 -----------------------------
 In order to complete the final task, statistical analysis of the first assignment was necessary. Two implementations ([this](https://github.com/jabrail-chumakov/Robot-Simulator-with-360-degree-sensors) and [this](https://github.com/CarmineD8/python_simulator/tree/rt2)) were taken into consideration, and it was tested to see which one performed better in the circuit when silver tokens were distributed at random throughout the environment.
+### Speed comparison ###
+In this parametric test, the correct test statistic **t** is generated from the sample data and compared to its likely value based on the **t-distribution** at a preset level of significance for accepting or rejecting the null hypothesis ("Two codes' speeds are equal - **H0**"). As an alternative, it is possible to assume that my code is quicker if they aren't functioning at the same rate (**H1**). The calculations are predicated on the time being measured in seconds. The assumption about the same speed can be disproved and the alternative hypothesis can be validated because **t** estimated in this case is greater than **t** from the table.
+
+### Wrong movement trajectory ###
+The same parametric test was run for all of the robot's incorrect trajectory movements in this part. The assumption was that **H0** would imply that both codes are equally good at following a straight line. The **H1** hypothesis was that the professor's code was better at taking a straight route. The same outcome is obtained through the **t-test**, allowing **t calculated** **>** **t from table** to favor H1 and reject H0.
+
+### Collision test ###
+Since this part deals with a non-parametric test, the Chi-square test was used to evaluate the difference between my observed numbers and the counts that would be anticipated if there were no correlation at all in the population.
+In this case, the comparison is based on the number of laps during which either my script or the professor's script encountered a system crash or an infinite loop event that necessitated stopping the execution of the code. The professor's code was superior, contrary to the **H0** assumption that both codes' efficacy is equal. The results demonstrate that there is little likelihood of error in rejecting the null hypothesis, thus I can do so without difficulty.
+
+### Conclusion ###
+It is clear from the data acquired that both codes are effective, and the issues encountered during execution are more closely tied to a system issue than to an algorithm. In addition to that, the results of efficiency of the two codes were almost the same:
+- The difference in the evaluation of the Wrong movement trajectory is attributable to better use of the sensor data. Because of this, the professor's script is a bit better in this scenario.
+- Both algorithms experienced some laps of being stuck during the Collision test.
+- Finally, it can be concluded that the professor's code is a little more efficient and reliable compared to my code.
+
 
 Video demonstration
 -----------------------------
