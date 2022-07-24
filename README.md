@@ -91,7 +91,7 @@ Video demonstration
 -----------------------------
 Below you can watch a demonstration of this assignment (click on image):
 
-[<img src="https://user-images.githubusercontent.com/67557966/180658532-2e5b7581-aad9-48d4-bf04-7a5138c49515.jpg" width="60%">](https://www.youtube.com/watch?v=Rp8nScg7rpc))
+[<img src="https://user-images.githubusercontent.com/67557966/180658532-2e5b7581-aad9-48d4-bf04-7a5138c49515.jpg" width="40%">](https://www.youtube.com/watch?v=Rp8nScg7rpc))
 
 Flowchart
 -----------------------------
