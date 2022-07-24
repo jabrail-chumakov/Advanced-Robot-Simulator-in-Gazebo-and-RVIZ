@@ -87,6 +87,12 @@ Working principle via Jupyter
 -----------------------------
 The program works in the same way as in the original project. In the first option, you just navigate to the desired position, while in the second and third you can move the robot by yourself. In order to enable obstacle collision, you should check the appropriate box inside Jupiter notebook.
 
+Video demonstration
+-----------------------------
+Below you can watch a demonstration of this assignment:
+
+[<img src="https://user-images.githubusercontent.com/67557966/180658532-2e5b7581-aad9-48d4-bf04-7a5138c49515.jpg" width="80%">](https://www.youtube.com/watch?v=Rp8nScg7rpc))
+
 Flowchart
 -----------------------------
 ![flowcharts](https://user-images.githubusercontent.com/67557966/153733475-f29e3aa0-76fb-40a2-9106-d8fb695bdbdc.png)
